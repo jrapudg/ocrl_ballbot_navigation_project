@@ -1,0 +1,577 @@
+<?xml version="1.0"?>
+<robot name="ballbot">  
+
+  <!-- Links -->
+
+<!-- Point contact with the floor aligned with odom frame-->
+  <link name="base_link" />      
+
+<!-- Ball (center of sphere)-->
+  <link name="ball_link">      
+     <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.105"/>
+      </geometry>
+      <material name="orange">
+	<color rgba=".4 .2 0 .8"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="base_to_ball" type="fixed">    
+    <origin xyz="0 0 0.105" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="ball_link" />
+  </joint>
+
+
+  <!-- ball to body: xAngle: + make X motion, then yAngle, then yaw -->
+  <joint name="xAngle" type="revolute">    
+    <axis xyz="0 1 0" />
+    <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="1"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="ball_link" />
+    <child link="xAngle_to_yAngle" />
+  </joint>
+
+  <link name="xAngle_to_yAngle"/>
+
+  <joint name="yAngle" type="revolute">    
+    <axis xyz="-1 0 0" />
+    <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="1"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="xAngle_to_yAngle" />
+    <child link="yAngle_to_bodyYaw" />
+  </joint>
+
+  <link name="yAngle_to_bodyYaw"/>
+
+  <joint name="yaw" type="revolute">    
+    <axis xyz="0 0 1" />
+    <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="1"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="yAngle_to_bodyYaw" />
+    <child link="body" />
+  </joint>
+
+
+<!-- Body (origin is at center of ball)-->
+  <link name="body">      
+     <visual>
+      <origin xyz="0 0 .7025" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="1.405" radius="0.184"/>
+      </geometry>
+      <material name="gold">
+	<color rgba="0.5 0.4 .13 0.7"/>
+      </material>
+    </visual>
+  </link>
+
+
+  <!-- Top of the body -->
+  <link name="body_top"/>
+  <joint name="top_of_body" type="fixed">    
+    <origin xyz="0 0 1.405" rpy="0 0 0" />
+    <parent link="body" />
+    <child link="body_top" />
+  </joint>
+
+<!-- Fake laser for AMCL/Gmapping (doesn't roll or pitch) -->
+  <link name="base_laser"/>
+  <joint name="base_laser_joint" type="fixed">    
+    <origin xyz="0 .165 0.775" rpy="0 0 1.571" />
+    <parent link="base_link" />
+    <child link="base_laser" />
+  </joint>
+
+<!-- Body Laser (origin at optical center)-->
+  <link name="laser">
+    <visual> <!-- barrel -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length=".03" radius="0.02"/>
+      </geometry>
+      <material name="grey">
+	<color rgba="0.05 0.05 0.05 1"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="real_laser_joint" type="fixed">    
+    <origin xyz="0 .165 0.67" rpy="0 0 1.571" />
+    <parent link="body" />
+    <child link="laser" />
+  </joint>
+  <link name="laser_box">
+    <visual> <!-- case -->
+      <origin xyz="0 0 -.035" rpy="0 0 0"/>
+      <geometry>
+        <box size=".05 .05 .04"/>
+      </geometry>
+      <material name="light_grey">
+	<color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="laser_bottom" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="laser" />
+    <child link="laser_box" />
+  </joint>
+
+
+
+<!-- TURRET -->
+
+<!-- turret plate -->
+  <link name="turret">
+    <visual> <!-- main turret plate visual -->
+      <origin xyz="0 0 -0.0015" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="0.003" radius="0.184"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="turret_pan" type="revolute">    <!-- X axis of turret points forward (REP 103) -->
+    <axis xyz="0 0 1" />
+    <limit effort="1000.0" lower="-6.1" upper="6.1" velocity="1"/>
+    <origin xyz="0 0 0.01" rpy="0 0 1.571" />
+    <parent link="body_top" />
+    <child link="turret" />
+  </joint>
+<!-- Turret Plate Visuals -->
+  <link name="pan_motor_guard">
+    <visual>
+      <origin xyz="-0.10 0 .015" rpy="0 0 0" />
+      <geometry>
+        <box size=".065 .065 .03"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="turret_pmg" type="fixed">
+    <parent link="turret" />
+    <child link="pan_motor_guard" />
+  </joint>
+  <link name="pan_motor">
+    <visual>
+      <origin xyz="-0.105 0 .07" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="0.14" radius="0.02"/>
+      </geometry>
+      <material name="silver">
+	<color rgba=".4 .4 .4 1"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="turret_pm" type="fixed">
+    <parent link="turret" />
+    <child link="pan_motor" />
+  </joint>
+  <link name="hook_box">
+    <visual>
+      <origin xyz="0 0 .0725" rpy="0 0 0" />
+      <geometry>
+        <box size=".02 .158 .145"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="turret_hb" type="fixed">
+    <parent link="turret" />
+    <child link="hook_box" />
+  </joint>
+  <link name="tilt_motor">
+    <visual>
+      <origin xyz=".125 0 .0381" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder length="0.095" radius="0.015"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="turret_tm" type="fixed">
+    <parent link="turret" />
+    <child link="tilt_motor" />
+  </joint>
+  <link name="tilt_block">
+    <visual>
+      <origin xyz=".155 0 .025" rpy="0 0 0" />
+      <geometry>
+        <box size=".02 .09 .05"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="turret_tb" type="fixed">
+    <parent link="turret" />
+    <child link="tilt_block" />
+  </joint>
+<!-- Acoustic Magic -->
+  <link name="array_mic">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size=".055 .29 .04"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="turret_mic" type="fixed">
+    <origin xyz=".05 0 .125" rpy="0 0 0" />
+    <parent link="turret" />
+    <child link="array_mic" />
+  </joint>
+<!-- Right Eye Speaker -->
+  <link name="right_speaker">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.571 0" />
+      <geometry>
+        <cylinder length="0.055" radius="0.043"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+  </link>
+  <joint name="turret_right_speaker" type="fixed">
+    <origin xyz=".07 -.11 .045" rpy="0 0 0" />
+    <parent link="turret" />
+    <child link="right_speaker" />
+  </joint>
+<!-- Left Eye Speaker -->
+  <link name="left_speaker">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.571 0" />
+      <geometry>
+        <cylinder length="0.055" radius="0.043"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+  </link>
+  <joint name="turret_left_speaker" type="fixed">
+    <origin xyz=".07 .11 .045" rpy="0 0 0" />
+    <parent link="turret" />
+    <child link="left_speaker" />
+  </joint>
+<!-- fixed tilt (for interactive markers) -->
+  <link name="fixed_tilt"/>
+  <joint name="im_tilt_joint" type="fixed">
+    <origin xyz=".155 0 0.0381" rpy="0 0 0" />
+    <parent link="turret" />
+    <child link="fixed_tilt" />
+  </joint>
+<!-- turret tilt -->
+  <link name="tilt">
+    <visual>
+      <origin xyz="0 0 0.0025" rpy="0 0 0" />
+      <geometry>
+        <box size=".02 .07 .025"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="turret_tilt" type="revolute">
+    <axis xyz="0 1 0" />
+    <limit effort="1000.0" lower="-0.05" upper="1.571" velocity="1"/>
+    <origin xyz=".155 0 0.0381" rpy="0 0 0" />
+    <parent link="turret" />
+    <child link="tilt" />
+  </joint>
+<!-- Tilt Plate -->
+  <link name="tilt_plate">
+    <visual>
+      <origin xyz="-.025 0 0.018" rpy="0 0 0" />
+      <geometry>
+        <box size=".07 .07 .006"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="tilt_p" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="tilt" />
+    <child link="tilt_plate" />
+  </joint>
+<!-- Tilt Back Plate -->
+  <link name="tilt_back_plate">
+    <visual>
+      <origin xyz="-.0632 0 0.06" rpy="0 0 0" />
+      <geometry>
+        <box size=".0064 .025 .12"/>
+      </geometry>
+      <material name="gold"/>
+    </visual>
+  </link>
+  <joint name="tilt_b" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="tilt" />
+    <child link="tilt_back_plate" />
+  </joint>
+<!-- Asus Xtion -->
+  <link name="openni_camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size=".036 .178 .023"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+  </link>
+  <joint name="xtion_joint" type="fixed">    
+    <origin xyz="-.0324 0 .1295" rpy="0 0 0" />
+    <parent link="tilt" />
+    <child link="openni_camera_link"/>
+  </joint>
+  <!-- openni_camera  FRAME
+  <link name="openni_depth_frame"/>
+  <joint name="xtion_depth_joint" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 1.571" />
+    <parent link="openni_rgb_optical_frame" />
+    <child link="openni_depth_frame"/>
+  </joint>
+  -->
+<!-- Tilt Laser (origin at beam)-->
+  <link name="tilt_laser">
+    <visual> <!-- barrel -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length=".03" radius="0.02"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+  </link>
+  <joint name="tilt_laser_joint" type="fixed">    
+    <origin xyz="-0.025 0 0.0824" rpy="0 0 0" />
+    <parent link="tilt" />
+    <child link="tilt_laser" />
+  </joint>
+  <link name="tilt_laser_box">
+    <visual> <!-- case -->
+      <origin xyz="0 0 -.035" rpy="0 0 0"/>
+      <geometry>
+        <box size=".05 .05 .04"/>
+      </geometry>
+      <material name="light_grey"/>
+    </visual>
+  </link>
+  <joint name="tilt_laser_bottom" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="tilt_laser" />
+    <child link="tilt_laser_box" />
+  </joint>
+
+<!-- Right Arm -->
+  <link name="right_arm_base">
+    <visual>
+      <origin xyz="0 0 -0.06375" rpy="0 0 0"/>
+      <geometry>
+        <box size=".055 0.12 0.1275"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="right_arm_base_joint" type="fixed">    
+    <origin xyz="0.2114 0 1.2195" rpy="0 0 0" />
+    <parent link="body" />
+    <child link="right_arm_base" />
+  </joint>
+  <link name="right_motor_1">
+    <visual> 
+      <origin xyz="0 0.0325 -.2275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length=".20" radius="0.0275"/>
+      </geometry>
+      <material name="dark_green">
+	<color rgba="0 .3 0 1"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="right_m1" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="right_arm_base" />
+    <child link="right_motor_1" />
+  </joint>
+  <link name="right_motor_2">
+    <visual> 
+      <origin xyz="0 -0.0325 -.2275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length=".20" radius="0.0275"/>
+      </geometry>
+      <material name="dark_green"/>
+    </visual>
+  </link>
+  <joint name="right_m2" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="right_arm_base" />
+    <child link="right_motor_2" />
+  </joint>
+  <link name="right_shoulder">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder length=".12" radius="0.0275"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="right_arm_j1" type="revolute">
+    <axis xyz="0 -1 0" />
+    <limit effort="1000.0" lower="-0.05" upper="1.571" velocity="1"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="right_arm_base" />
+    <child link="right_shoulder" />
+  </joint>
+  <link name="right_shoulder2">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.571 0" />
+      <geometry>
+        <cylinder length=".0254" radius="0.0325"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="right_arm_j2" type="revolute">
+    <axis xyz="1 0 0" />
+    <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="1"/>
+    <origin xyz="0.0508 0 0" rpy="0 0 0" />
+    <parent link="right_shoulder" />
+    <child link="right_shoulder2" />
+  </joint>
+ <link name="right_arm">
+    <visual>
+      <origin xyz="-.2575 0 0" rpy="0 -1.571 0" />
+      <geometry>
+        <cylinder length=".515" radius="0.014"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="right_arm_j3" type="fixed">
+    <origin xyz="0 0 -0.515" rpy="0 1.571 1.571" />
+    <parent link="right_shoulder2" />
+    <child link="right_arm" />
+  </joint>
+
+<!-- Left Arm -->
+  <link name="left_arm_base">
+    <visual>
+      <origin xyz="0 0 -0.06375" rpy="0 0 0"/>
+      <geometry>
+        <box size=".055 0.12 0.1275"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="left_arm_base_joint" type="fixed">    
+    <origin xyz="-0.2114 0 1.2195" rpy="0 0 3.14159" />
+    <parent link="body" />
+    <child link="left_arm_base" />
+  </joint>
+  <link name="left_motor_1">
+    <visual> 
+      <origin xyz="0 0.0325 -.2275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length=".20" radius="0.0275"/>
+      </geometry>
+      <material name="dark_green">
+	<color rgba="0 .3 0 1"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="left_m1" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="left_arm_base" />
+    <child link="left_motor_1" />
+  </joint>
+  <link name="left_motor_2">
+    <visual> 
+      <origin xyz="0 -0.0325 -.2275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length=".20" radius="0.0275"/>
+      </geometry>
+      <material name="dark_green"/>
+    </visual>
+  </link>
+  <joint name="left_m2" type="fixed">    
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="left_arm_base" />
+    <child link="left_motor_2" />
+  </joint>
+  <link name="left_shoulder">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder length=".12" radius="0.0275"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="left_arm_j1" type="revolute">
+    <axis xyz="0 -1 0" />
+    <limit effort="1000.0" lower="-0.05" upper="1.571" velocity="1"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="left_arm_base" />
+    <child link="left_shoulder" />
+  </joint>
+  <link name="left_shoulder2">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.571 0" />
+      <geometry>
+        <cylinder length=".0254" radius="0.0325"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="left_arm_j2" type="revolute">
+    <axis xyz="1 0 0" />
+    <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="1"/>
+    <origin xyz="0.0508 0 0" rpy="0 0 0" />
+    <parent link="left_shoulder" />
+    <child link="left_shoulder2" />
+  </joint>
+ <link name="left_arm">
+    <visual>
+      <origin xyz="-.2575 0 0" rpy="0 -1.571 0" />
+      <geometry>
+        <cylinder length=".515" radius="0.014"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+  </link>
+  <joint name="left_arm_j3" type="fixed">
+    <origin xyz="0 0 -0.515" rpy="3.14 1.571 1.571" />
+    <parent link="left_shoulder2" />
+    <child link="left_arm" />
+  </joint>
+ <link name="left_weight">
+    <visual>
+      <origin xyz="-.0381 0 0" rpy="0 1.571 0" />
+      <geometry>
+        <cylinder length=".0762" radius="0.03175"/>
+      </geometry>
+      <material name="brass">
+	<color rgba=".3 .2 0 .8"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="left_weight_joint" type="fixed">
+    <origin xyz="0.0762 0 0" rpy="0 0 0" />
+    <parent link="left_arm" />
+    <child link="left_weight" />
+  </joint>
+ <link name="right_weight">
+    <visual>
+      <origin xyz="-.0381 0 0" rpy="0 1.571 0" />
+      <geometry>
+        <cylinder length=".0762" radius="0.03175"/>
+      </geometry>
+      <material name="brass"/>
+    </visual>
+  </link>
+  <joint name="right_weight_joint" type="fixed">
+    <origin xyz="0.0762 0 0" rpy="0 0 0" />
+    <parent link="right_arm" />
+    <child link="right_weight" />
+  </joint>
+
+</robot>

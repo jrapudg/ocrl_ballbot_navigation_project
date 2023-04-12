@@ -1,0 +1,10 @@
+__pycache__/
+
+outs/
+tmp/
+
+.DS_STORE
+
+rosbags/
+
+.vscode/
