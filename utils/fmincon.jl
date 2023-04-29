@@ -184,9 +184,9 @@ function fmincon(cost::Function,
     verbose && println("---------checking dimensions of everything----------")
     @assert length(x0) == length(x_l) == length(x_u)
     @assert length(c_l) == length(c_u) == n_ineq
-    @assert maximum(x_l) <= minimum(x_u)
+    @assert all(x_u .>= x_l)
     if n_ineq > 0 
-        @assert maximum(c_l) <= minimum(c_u)
+        @assert all(c_u .>= c_l)
     end
     verbose && println("---------all dimensions good------------------------")
     
