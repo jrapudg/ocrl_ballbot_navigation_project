@@ -158,7 +158,7 @@
   <link name="Link_Body">
     <inertial>
       <origin xyz="0.015 0.0005 -0.015"/>
-      <mass value="71.34"/>
+      <mass value="64.86"/>
       <inertia ixx="10.61648" ixy="0.00000" ixz="0.00000" iyy="10.61648" iyz="0.00000" izz="0.66440"/>
     </inertial>
     <visual>

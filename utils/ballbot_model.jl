@@ -8,7 +8,8 @@ using ForwardDiff
 # Define urdf file
 srcdir = "ballbot_arm_description"
 urdf = joinpath(srcdir, "robots", "urdf", "ballbot_no_arms.urdf")
-urdf_arms = joinpath(srcdir, "robots", "urdf", "ballbot_plus_fixedbase.urdf")
+urdf_arms = joinpath(srcdir, "robots", "urdf", "ballbot_plus_fixedbase_two_link_arm.urdf")
+urdf_arms_real = joinpath(srcdir, "robots", "urdf", "ballbot_plus_fixedbase_two_link_arm_real.urdf")
 
 struct Ballbot{C}
     mech::Mechanism{Float64}
@@ -43,8 +44,18 @@ end
 function build_ballbot_arms()
     # Define urdf file
     srcdir = "ballbot_arm_description"
-    urdf_arms = joinpath(srcdir, "robots", "urdf", "ballbot_plus_fixedbase.urdf")
-    ballbot = parse_urdf(urdf_arms)
+    urdf_arms = joinpath(srcdir, "robots", "urdf", "ballbot_plus_fixedbase_two_link_arm.urdf")
+    # ballbot = parse_urdf(urdf_arms)
+    ballbot = parse_urdf(urdf_arms; remove_fixed_tree_joints=true)
+    return ballbot
+end
+
+function build_ballbot_arms_real()
+    # Define urdf file
+    srcdir = "ballbot_arm_description"
+    urdf_arms_real = joinpath(srcdir, "robots", "urdf", "ballbot_plus_fixedbase_two_link_arm_real.urdf")
+    # ballbot = parse_urdf(urdf_arms)
+    ballbot = parse_urdf(urdf_arms; remove_fixed_tree_joints=true)
     return ballbot
 end
 
@@ -107,6 +118,10 @@ end
 
 function Ballbot_arms()
     Ballbot(build_ballbot_arms())
+end
+
+function Ballbot_arms_real()
+    Ballbot(build_ballbot_arms_real())
 end
 
 function Ballbot_wall(left_end_coord::AbstractVector{T}, right_end_coord::AbstractVector{T}) where {T}
