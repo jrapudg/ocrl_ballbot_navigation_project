@@ -26,3 +26,7 @@ You can find the code for this task at this link: [Hybrid trajectory optimizatio
 Ball speed constrained < 5 m/s | Ball speed constrained < 1 m/s
 --- | ---
 ![alt-text-1](./animations/pushing_constrained.gif) | ![alt-text-2](./animations/pushing.gif)
+
+### Pushing the wall task with centroidal momentum dynamics (WIP)
+You can find the code for this task at this link: [Hybrid trajectory optimization for pushing the wall](./wall_pushing_more_general_reduced.ipynb).
+![](./animations/wallpush_centroidal_preliminary.gif)
